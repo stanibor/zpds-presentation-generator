@@ -39,11 +39,12 @@ def extract_presentation_notes(presentation: Presentation) -> List[str]:
 
 def synthesize_spoken_notes(slide_notes: List[str], tacotron_model, hifi_gan) -> List[torch.Tensor]:
     sorter = np.argsort([len(x) for x in slide_notes])[::-1]  # sort notes in descending order
+    inv_sorter = np.argsort(sorter)  # inverse sorter
     items = np.array(slide_notes)[sorter]  # it is required by tacotron batched inference function
     mel_outputs, mel_lengths, alignments = tacotron_model.encode_batch(items)
     waveforms = hifi_gan.decode_batch(mel_outputs)
     lens = mel_lengths.div(mel_lengths.max()).mul_(waveforms.shape[-1]).ceil_().long()
-    wavs = [waveforms[i, :, :lens[i]] for i in sorter]  # cut each clip at its lenghts
+    wavs = [waveforms[i, :, :lens[i]] for i in inv_sorter]  # cut each clip at its lenghts
 
     return wavs
 
