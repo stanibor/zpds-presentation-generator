@@ -33,11 +33,11 @@ def get_pretrained_tts_models(tmpdir: Path = Path("")):
 
 
 def extract_presentation_notes(presentation: Presentation) -> List[str]:
-    notes = [slide.notes_slide.notes_text_frame.text for slide in presentation.slides]
-    return notes
+    presentation_notes = [slide.notes_slide.notes_text_frame.text for slide in presentation.slides]
+    return presentation_notes
 
 
-def synthesize_spoken_notes(slide_notes: List[str], tacotron_model, hifi_gan) -> List[torch.Tensor]:
+def synthesize_slide_notes(slide_notes: List[str], tacotron_model, hifi_gan) -> List[torch.Tensor]:
     sorter = np.argsort([len(x) for x in slide_notes])[::-1]  # sort notes in descending order
     inv_sorter = np.argsort(sorter)  # inverse sorter
     items = np.array(slide_notes)[sorter]  # it is required by tacotron batched inference function
@@ -49,13 +49,33 @@ def synthesize_spoken_notes(slide_notes: List[str], tacotron_model, hifi_gan) ->
     return wavs
 
 
+def consolidate_speech(wavs: List[torch.Tensor],
+                      pause_time=0.5,
+                      sampling_rate = DEFAULT_SAMPLING_RATE):
+    pause = wavs[0].new_zeros(1, int(pause_time * sampling_rate))
+    wavs_pauses = [item for wav in wavs for item in [wav, pause]]
+    big_wav = torch.cat(wavs_pauses, dim=-1)
+    return big_wav
+
+
+def synthesize_presentation_notes(presentation_notes: List[str], tacotron_model, hifi_gan) -> List[torch.Tensor]:
+    presentation_notes = [t.replace('"', "") for t in presentation_notes]
+    wavs = []
+    for slide_notes in presentation_notes:
+        slide_sentences = slide_notes.split(".")
+        slide_sentences = [s for s in slide_sentences if len(s) > 0]
+        slide_wavs = synthesize_slide_notes(slide_sentences, tacotron_model, hifi_gan)
+        slide_wav = consolidate_speech(slide_wavs)
+        wavs.append(slide_wav)
+
+    return wavs
+
+
 def save_full_speech(wavs: List[torch.Tensor],
                      output_path: Path = Path("full_speech.wav"),
                      pause_time=0.5,
                      sampling_rate = DEFAULT_SAMPLING_RATE):
-    pause = wavs[0].new_zeros(1, int(pause_time * sampling_rate))
-    wavs_pauses = [item for wav in wavs for item in [wav, pause]]
-    big_wav = torch.cat(wavs_pauses, dim=-1)
+    big_wav = consolidate_speech(wavs, pause_time, sampling_rate)
     torchaudio.save(output_path, big_wav, sampling_rate)
 
 
