@@ -1,6 +1,9 @@
 import streamlit as st
 from pptx import Presentation
 from pptx.util import Inches
+
+from audio_functions import get_pretrained_tts_models, synthesize_spoken_notes, extract_presentation_notes, \
+    save_full_speech, save_waveforms
 from defined_functions import key_words_list2str, generate_title_slide, generate_introduction_speech, generate_slide_titles, generate_slide_caption, generate_slide_speech_description, generate_summary_speech, get_image_for_slide, get_presenation_data
 
 
@@ -62,6 +65,10 @@ def main():
                 if len(slide_data['img'][1]):
                     slide.shapes.add_picture(picture_path, left, top, width, height)
 
+                # Add speech into slide notes
+                notes_slide = slide.notes_slide  # Get slide notes object
+                notes_slide.notes_text_frame.text = slide_data['speech']  # Get speech text into notes
+
             slide = pres.slides.add_slide(pres.slide_layouts[2])
             title_shape = slide.shapes.title
             title_shape.text = 'Thank you'
@@ -93,12 +100,28 @@ def main():
     slide_notes_dl = st.file_uploader("Upload slide notes .txt")
     voice_sample = st.file_uploader("Upload voice sample .wav")
 
+    # Not sure how it works maybe it has to be cached once or something
+    tacotron_model, hifi_gan = get_pretrained_tts_models()
+
     if st.button("Generate a spoken presentation"):
-        if presentation is None or slide_notes is None or voice_sample is None:
+        if presentation is None or slide_notes is None:  # or voice_sample is None:
             st.write("Files are not provided!")
         else:
+            slide_notes = slide_notes_dl.split("\n")
+            # Alternatively there is a method to extract notes from presentation itself
+            # spoken_notes = extract_presentation_notes(presentation)
+            spoken_notes = synthesize_spoken_notes(slide_notes, tacotron_model, hifi_gan)
+
+            # save full speech in WAV format
+            save_full_speech(spoken_notes, "full_speech.wav")
+
+            # proper audio tracks can be added to each slide of the presentation
+            # audio_tracks = save_waveforms(spoken_notes)
+            # annotate_presentation_with_spoken_notes(presentation, audio_tracks)
+
             st.session_state.dwn_avi_avail = 1
 
+    # this should probably work differently
     st.download_button("Download spoken presentation .avi", "123", disabled=(st.session_state.dwn_avi_avail == 0))
 
 
