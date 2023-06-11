@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "zpds-presentation-generator"
+version = "0.1.0"
+description = ""
+authors = ["stanibor <stani.bork@gmail.com>"]
+readme = "README.md"
+packages = [{include = "zpds_presentation_generator"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.23.1"
+numpy = "^1.24.3"
+torch = "^2.0.1"
+torchaudio = "^2.0.2"
+speechbrain = "^0.5.14"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
