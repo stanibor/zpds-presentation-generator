@@ -2,8 +2,8 @@ import streamlit as st
 from pptx import Presentation
 from pptx.util import Inches
 
-from audio_functions import get_pretrained_tts_models, synthesize_spoken_notes, extract_presentation_notes, \
-    save_full_speech, save_waveforms
+from audio_functions import get_pretrained_tts_models, synthesize_presentation_notes, extract_presentation_notes, \
+    save_full_speech, save_waveforms, annotate_presentation_with_spoken_notes
 from defined_functions import key_words_list2str, generate_title_slide, generate_introduction_speech, generate_slide_titles, generate_slide_caption, generate_slide_speech_description, generate_summary_speech, get_image_for_slide, get_presenation_data
 
 
@@ -15,14 +15,15 @@ def main():
     st.sidebar.header("What tools where used to make this?")
     st.sidebar.text("Chat GPT3 and more.")
 
-    n_of_slides = st.number_input("Input number of core slides",1,20)
+    n_of_slides = st.number_input("Input number of core slides", 1, 20)
     words = st.text_input("Input context words, semicolon separated")
     list_of_words = words.split(";")
 
     if 'dwn_avail' not in st.session_state:
         st.session_state.dwn_avail = 0
-    if 'dwn_avi_avail' not in st.session_state:
-        st.session_state.dwn_avi_avail = 0
+    if 'dwn_tts_avail' not in st.session_state:
+        st.session_state.dwn_tts_avail = 0
+
 
     if st.button("Generate slides"):
         with st.spinner('Wait for it...'):
@@ -44,6 +45,9 @@ def main():
             title_shape.text = data['title']
             left = top = Inches(2)
             width = height = Inches(3)
+
+            notes_slide = slide.notes_slide  # Get slide notes object
+            notes_slide.notes_text_frame.text = data["introduction_speech"]
 
             #Slides
 
@@ -75,6 +79,9 @@ def main():
             left = top = Inches(2)
             width = height = Inches(3)
 
+            notes_slide = slide.notes_slide  # Get slide notes object
+            notes_slide.notes_text_frame.text = data['summary']  # Get speech text into notes
+
             pres.save('presentation.pptx')
         st.success('Done!')
     
@@ -86,43 +93,38 @@ def main():
                     file_name='presentation.pptx',
                     disabled=(st.session_state.dwn_avail == 0)
                 )
-            presentation = file
-        with open('slide_notes.txt', "r", encoding="utf8") as file:
-            btn = st.download_button(
-                    label="Download slide notes .txt",
-                    data=file,
-                    file_name='slide_notes.txt',
-                    disabled=(st.session_state.dwn_avail == 0)
-                )
-            slide_notes = file
+            # presentation = file
 
     presentation_dl = st.file_uploader("Upload presentation .pptx")
-    slide_notes_dl = st.file_uploader("Upload slide notes .txt")
-    voice_sample = st.file_uploader("Upload voice sample .wav")
+    presentation = Presentation('presentation.pptx' if presentation_dl is None else presentation_dl)
 
     # Not sure how it works maybe it has to be cached once or something
     tacotron_model, hifi_gan = get_pretrained_tts_models()
 
     if st.button("Generate a spoken presentation"):
-        if presentation is None or slide_notes is None:  # or voice_sample is None:
+        if presentation is None:
             st.write("Files are not provided!")
         else:
-            slide_notes = slide_notes_dl.split("\n")
-            # Alternatively there is a method to extract notes from presentation itself
-            # spoken_notes = extract_presentation_notes(presentation)
-            spoken_notes = synthesize_spoken_notes(slide_notes, tacotron_model, hifi_gan)
+            with st.spinner('Generating speech...'):
+                slide_notes = extract_presentation_notes(presentation)
+                spoken_notes = synthesize_presentation_notes(slide_notes, tacotron_model, hifi_gan)
 
-            # save full speech in WAV format
-            save_full_speech(spoken_notes, "full_speech.wav")
+                # save full speech in WAV format (this is not needed for the final presentation)
+                # save_full_speech(spoken_notes, "full_speech.wav")
 
-            # proper audio tracks can be added to each slide of the presentation
-            # audio_tracks = save_waveforms(spoken_notes)
-            # annotate_presentation_with_spoken_notes(presentation, audio_tracks)
+                # proper audio tracks can be added to each slide of the presentation
+                audio_tracks = save_waveforms(spoken_notes)
+                annotate_presentation_with_spoken_notes(presentation, audio_tracks)
 
-            st.session_state.dwn_avi_avail = 1
+                presentation.save("spoken_presentation.pptx")
 
-    # this should probably work differently
-    st.download_button("Download spoken presentation .avi", "123", disabled=(st.session_state.dwn_avi_avail == 0))
+                st.session_state.dwn_tts_avail = 1
+
+    with open("spoken_presentation.pptx", "rb") as file:
+        st.download_button("Download spoken presentation .pptx",
+                           data=file,
+                           file_name='presentation.pptx',
+                           disabled=(st.session_state.dwn_tts_avail == 0))
 
 
 if __name__ == '__main__':
