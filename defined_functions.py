@@ -51,6 +51,9 @@ import requests, lxml, re, urllib.parse, base64
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 
 headers = {
@@ -79,6 +82,30 @@ def get_image_for_slide(slide_title:str, slide_number:int):
     if len(img_matches):
         try:
             final_image = Image.open(BytesIO(base64.b64decode(str(img_matches[0][1]))))
+            final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
+            return True, f'slide_image_{slide_number}.jpg'
+        except:
+            return False, ''
+    else:
+        return False, ''
+    
+def get_image_for_slide_selenium(slide_title:str, slide_number:int):
+    firefox_binary = FirefoxBinary()
+    browser = webdriver.Firefox(firefox_binary=firefox_binary)
+
+    browser.get(f'https://www.google.com/search?q={slide_title}&source=lnms&tbm=isch')
+    browser.find_element(By.XPATH,"//.[@aria-label='Zaakceptuj wszystko']").click()
+
+    for el in browser.find_elements(By.CSS_SELECTOR, "img"):
+        url = el.get_attribute("src")
+        if "data:image" in url:
+            print(url)
+            break
+    
+    browser.close()
+    if url:
+        try:
+            final_image = Image.open(BytesIO(base64.b64decode(url[22:])))
             final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
             return True, f'slide_image_{slide_number}.jpg'
         except:
