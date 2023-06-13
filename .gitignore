@@ -1,3 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
-*.pttx
-pres_template.py
+*.pptx
+pres_teplate*
+*.wav
+slide_notes.txt
+*.jpg

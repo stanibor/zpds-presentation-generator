@@ -23,13 +23,13 @@ def generate_introduction_speech(presenatation_title:str):
 
 
 def generate_slide_titles(key_words:list, number_of_slides:int):
-    prompt = f'Generate {number_of_slides} slide titles for whole presentation based on keywords: {key_words_list2str(key_words)} separated by comas without quotation marks and without numeration'
+    prompt = f'Generate {number_of_slides} slide titles for whole presentation based on keywords: {key_words_list2str(key_words)} separated by comas without quotation marks and without numeration. Max 7 words.'
     titles = openai.Completion.create(engine=TEXT_MODEL, prompt=prompt, max_tokens=500).choices[0].text
     return titles.strip().split(', ')
 
 
 def generate_slide_caption(slide_title:str):
-    prompt = f'Generate slide text as string based on title: {slide_title}. Maximum 20 words.'
+    prompt = f'Generate slide text as string based on title: {slide_title}. Maximum 15 words.'
     slide_text = openai.Completion.create(engine=TEXT_MODEL, prompt=prompt, max_tokens=500).choices[0].text
     return slide_text.replace('\n', '')
 
@@ -86,9 +86,9 @@ def get_image_for_slide(slide_title:str, slide_number:int):
             final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
             return True, f'slide_image_{slide_number}.jpg'
         except:
-            return False, ''
+            return False, 'African_Bush_Elephant.jpg'
     else:
-        return False, ''
+        return False, 'African_Bush_Elephant.jpg'
     
 def get_image_for_slide_selenium_firefox(slide_title:str, slide_number:int):
     firefox_binary = FirefoxBinary()
@@ -117,24 +117,26 @@ def get_image_for_slide_selenium_firefox(slide_title:str, slide_number:int):
 def get_image_for_slide_selenium_chrome(slide_title:str, slide_number:int):
     browser = webdriver.Chrome()
     browser.get(f'https://www.google.com/search?q={slide_title}&source=lnms&tbm=isch')
-    browser.find_elements(By.XPATH,"//button[@aria-label='Zaakceptuj wszystko']")[0].click()
+    elem = browser.find_elements(By.XPATH,"//button[@aria-label='Zaakceptuj wszystko']")
+    if len(elem):
+        elem[0].click()
 
-    url = ''
-    time.sleep(1)
-    for el in browser.find_elements(By.XPATH, "//img"):
-        url = el.get_attribute("src")
-        if "data:image" in url:
-            break
-    
-    browser.close()
-    print(url)
-    if url:
-        try:
-            final_image = Image.open(BytesIO(base64.b64decode(url[22:])))
-            final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
-            return True, f'slide_image_{slide_number}.jpg'
-        except:
-            return False, ''
+        url = ''
+        time.sleep(1)
+        for el in browser.find_elements(By.XPATH, "//img"):
+            url = el.get_attribute("src")
+            if "data:image" in url:
+                break
+        
+        browser.close()
+        print(url)
+        if url:
+            try:
+                final_image = Image.open(BytesIO(base64.b64decode(url[22:])))
+                final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
+                return True, f'slide_image_{slide_number}.jpg'
+            except:
+                return False, ''
     else:
         return False, ''
     
@@ -157,7 +159,6 @@ def get_presenation_data(key_words:list, n_of_slides):
             'img': get_image_for_slide(slide_title, i),
             'speech': speech
         }
-        print(slide['img'])
         i += 1
         example_generated_data['slides'].append(slide)
     example_generated_data['summary'] = generate_summary_speech(title)

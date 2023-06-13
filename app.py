@@ -3,10 +3,11 @@ from pathlib import Path
 import streamlit as st
 from pptx import Presentation
 from pptx.util import Inches
+from pptx.dml.color import RGBColor
 
 from audio_functions import get_pretrained_tts_models, synthesize_presentation_notes, extract_presentation_notes, \
-    save_full_speech, save_waveforms, annotate_presentation_with_spoken_notes
-from defined_functions import key_words_list2str, generate_title_slide, generate_introduction_speech, generate_slide_titles, generate_slide_caption, generate_slide_speech_description, generate_summary_speech, get_image_for_slide, get_presenation_data
+    save_waveforms, annotate_presentation_with_spoken_notes
+from defined_functions import get_presenation_data
 
 
 def main():
@@ -43,7 +44,11 @@ def main():
             #Slide Intro
 
             slide = pres.slides.add_slide(pres.slide_layouts[2])
+            slide.background.fill.solid()
+            slide.background.fill.fore_color.rgb = RGBColor(173, 216, 230)
             title_shape = slide.shapes.title
+            title_shape.fill.solid()
+            title_shape.fill.fore_color.rgb = RGBColor(96, 147, 172)
             title_shape.text = data['title']
             left = top = Inches(2)
             width = height = Inches(3)
@@ -54,28 +59,31 @@ def main():
             #Slides
 
             for slide_data in data['slides']:
-                slide_layout = pres.slide_layouts[1]  # Use layout with title and content
+                slide_layout = pres.slide_layouts[8]  # Use layout with title and content
                 slide = pres.slides.add_slide(slide_layout)
+                slide.background.fill.solid()
+                slide.background.fill.fore_color.rgb = RGBColor(173, 216, 230)
                 # Set the slide title
                 title = slide.shapes.title
+                title_shape.fill.solid()
+                title_shape.fill.fore_color.rgb = RGBColor(96, 147, 172)
                 title.text = slide_data['title']
                 # Add a text field
-                content = slide.placeholders[1]  # Use the second placeholder for content
+                content = slide.placeholders[2]  # Use the second placeholder for content
                 content.text = slide_data['text']
                 # Add a picture
-                picture_path = slide_data['img'][1]  # Replace with the actual path to your picture
-                left = Inches(4)  # Adjust the position of the picture
-                top = Inches(4)
-                width = Inches(4)  # Adjust the size of the picture
-                height = Inches(3)
                 if len(slide_data['img'][1]):
-                    slide.shapes.add_picture(picture_path, left, top, width, height)
+                    picture_path = slide_data['img'][1]  # Replace with the actual path to your picture
+                    img_placeholder = slide.placeholders[1]
+                    img_placeholder.insert_picture(picture_path)
 
                 # Add speech into slide notes
                 notes_slide = slide.notes_slide  # Get slide notes object
                 notes_slide.notes_text_frame.text = slide_data['speech']  # Get speech text into notes
 
             slide = pres.slides.add_slide(pres.slide_layouts[2])
+            slide.background.fill.solid()
+            slide.background.fill.fore_color.rgb = RGBColor(173, 216, 230)
             title_shape = slide.shapes.title
             title_shape.text = 'Thank you'
             left = top = Inches(2)

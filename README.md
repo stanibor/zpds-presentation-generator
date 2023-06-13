@@ -5,8 +5,10 @@
 **ZPDF Presentation Generator** is an application for automated creation of .pptx presentations about any topic based on given keywords. Presentation slides, slides descriptions and voiceover are created.
 
 ## Technology used
+
 Python is used as programming language for this project.
 Main libraries, frameworks and models used are:
+
 * Streamlit - framework used to create App
 * Chat GPT3 - (openai library) - language model for creation of presentation content
 * pptx - library for managing .pptx presentations
@@ -19,6 +21,7 @@ The operation of the module responsible for generating presentations can be divi
 
 1. Generation of slide titles based on keywords.
 2. On slied title basis, the content of the note to be spoken is then generated, as well as the search for a photo, which is then downloaded and inserted into the presentation.
+
 The solution utilise "text-davinci-003 "language model provided by openAI. At this point, there is one predefined template written using the python-pttx library containing generative placement of elements on the initial (title), middle (title description and photo) and final (thank you) slides.
 
 ## Structure
@@ -30,6 +33,7 @@ Additional functions are defined in audio_functions.py and defined_functions.py.
 ## Installing dependencies
 
 In order to install all required libraries generate a virtual environment:
+
 ```
 python3 -m venv PATH/TO/VENV
 ```
