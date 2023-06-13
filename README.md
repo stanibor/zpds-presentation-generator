@@ -13,6 +13,14 @@ Main libraries, frameworks and models used are:
 * torch and speechbrain - libraries used for text-to-speech conversion
 * ngrok - app for exposing our application to the internet
 
+## ChatGPT
+
+The operation of the module responsible for generating presentations can be divided into 2 stages:
+
+1. Generation of slide titles based on keywords.
+2. On slied title basis, the content of the note to be spoken is then generated, as well as the search for a photo, which is then downloaded and inserted into the presentation.
+The solution utilise "text-davinci-003 "language model provided by openAI. At this point, there is one predefined template written using the python-pttx library containing generative placement of elements on the initial (title), middle (title description and photo) and final (thank you) slides.
+
 ## Structure
 
 The overall UI application is defined in app.py file.
