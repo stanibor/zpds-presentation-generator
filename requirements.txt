@@ -1,0 +1,9 @@
+streamlit==1.23.1
+python-pttx==0.6.21
+torchaudio==2.0.2
+torch==2.0.1
+openai==0.27.8
+beautifulsoup4==4.12.2
+selenium==4.10.0
+speechbrain==0.5.14
+soundfile==0.12.1
