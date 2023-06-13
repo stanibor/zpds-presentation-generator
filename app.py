@@ -95,8 +95,11 @@ def main():
                 )
             # presentation = file
 
-    presentation_dl = st.file_uploader("Upload presentation .pptx")
-    presentation = Presentation('presentation.pptx' if presentation_dl is None else presentation_dl)
+    presentation_dl = st.file_uploader("Upload presentation .pptx", type=["pptx"])
+    presentation = None
+
+    if presentation_dl is not None:
+        presentation = Presentation(presentation_dl)
 
     # Not sure how it works maybe it has to be cached once or something
     tacotron_model, hifi_gan = get_pretrained_tts_models()
@@ -120,11 +123,12 @@ def main():
 
                 st.session_state.dwn_tts_avail = 1
 
-    with open("spoken_presentation.pptx", "rb") as file:
-        st.download_button("Download spoken presentation .pptx",
-                           data=file,
-                           file_name='presentation.pptx',
-                           disabled=(st.session_state.dwn_tts_avail == 0))
+    if st.session_state.dwn_tts_avail == 1:
+        with open("spoken_presentation.pptx", "rb") as file:
+            st.download_button("Download spoken presentation .pptx",
+                               data=file,
+                               file_name='presentation.pptx',
+                               disabled=(st.session_state.dwn_tts_avail == 0))
 
 
 if __name__ == '__main__':

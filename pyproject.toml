@@ -13,6 +13,9 @@ numpy = "^1.24.3"
 torch = "^2.0.1"
 torchaudio = "^2.0.2"
 speechbrain = "^0.5.14"
+openai = "^0.27.8"
+selenium = "^4.10.0"
+bs4 = "^0.0.1"
 
 
 [build-system]
