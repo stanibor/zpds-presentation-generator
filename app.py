@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 from pptx import Presentation
 from pptx.util import Inches
@@ -96,7 +98,7 @@ def main():
             # presentation = file
 
     presentation_dl = st.file_uploader("Upload presentation .pptx", type=["pptx"])
-    presentation = None
+    presentation = Presentation("presentation.pptx") if Path('presentation.pptx').exists() else None
 
     if presentation_dl is not None:
         presentation = Presentation(presentation_dl)
@@ -108,13 +110,19 @@ def main():
         if presentation is None:
             st.write("Files are not provided!")
         else:
-            with st.spinner('Generating speech...'):
-                slide_notes = extract_presentation_notes(presentation)
-                spoken_notes = synthesize_presentation_notes(slide_notes, tacotron_model, hifi_gan)
-
-                # save full speech in WAV format (this is not needed for the final presentation)
-                # save_full_speech(spoken_notes, "full_speech.wav")
-
+            progress_text = "Generating speech in progress. Please wait."
+            my_bar = st.progress(0, text=progress_text)
+            spoken_notes = []
+            presentation_len = len(presentation.slides)
+            slide_notes = extract_presentation_notes(presentation)
+            for slide_wav in synthesize_presentation_notes(slide_notes, tacotron_model, hifi_gan):
+                i = len(spoken_notes) + 1
+                progress_text = f"Generating speech in progress. Please wait. (Slide {i}/{presentation_len})"
+                spoken_notes.append(slide_wav)
+                my_bar.progress(i / presentation_len, text=progress_text)
+            progress_text = f"Generating speech completed."
+            my_bar.progress(1.0, text=progress_text)
+            with st.spinner('Adding audio tracks...'):
                 # proper audio tracks can be added to each slide of the presentation
                 audio_tracks = save_waveforms(spoken_notes)
                 annotate_presentation_with_spoken_notes(presentation, audio_tracks)

@@ -60,15 +60,15 @@ def consolidate_speech(wavs: List[torch.Tensor],
 
 def synthesize_presentation_notes(presentation_notes: List[str], tacotron_model, hifi_gan) -> List[torch.Tensor]:
     presentation_notes = [t.replace('"', "") for t in presentation_notes]
-    wavs = []
+    # wavs = []
     for slide_notes in presentation_notes:
         slide_sentences = slide_notes.split(".")
         slide_sentences = [s for s in slide_sentences if len(s) > 0]
         slide_wavs = synthesize_slide_notes(slide_sentences, tacotron_model, hifi_gan)
         slide_wav = consolidate_speech(slide_wavs)
-        wavs.append(slide_wav)
-
-    return wavs
+        # wavs.append(slide_wav)
+        yield slide_wav
+    # return wavs
 
 
 def save_full_speech(wavs: List[torch.Tensor],
