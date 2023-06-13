@@ -19,6 +19,27 @@ The overall UI application is defined in app.py file.
 
 Additional functions are defined in audio_functions.py and defined_functions.py. The former file consists functions related to text-to-speech model, while the other file consists functions creating and managing the pptx presentation.
 
+## Installing dependencies
+
+In order to install all required libraries generate a virtual environment:
+```
+python3 -m venv PATH/TO/VENV
+```
+and activate it:
+```
+source PATH/TO/VENV/bin/activate
+```
+Make sure you have poetry installed:
+```
+pip install poetry
+```
+Then install all required libraries using poetry:
+```
+poetry install
+```
+
+
+
 ## Use
 
 In order to run ZPDS Presentation Generator locally use command:
