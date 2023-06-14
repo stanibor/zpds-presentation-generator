@@ -87,11 +87,15 @@ def save_waveforms(wavs: List[torch.Tensor], output_dir=Path(""), sampling_rate=
     return audio_tracks
 
 
+from lxml import etree
 def annotate_presentation_with_spoken_notes(presentation: Presentation, audio_tracks: List[PathLike]) -> Presentation:
     assert len(audio_tracks) <= len(presentation.slides)
     for i, audio_track in enumerate(audio_tracks):
         slide = presentation.slides[i]
-        slide.shapes.add_movie(audio_track, 0, 0, 100, 100)
+        movie = slide.shapes.add_movie(audio_track, 0, 0, 100, 100)
+        tree = movie._element.getparent().getparent().getnext().getnext()
+        timing = [el for el in tree.iterdescendants() if etree.QName(el).localname == 'cond'][0]
+        timing.set('delay', '0')
 
     return presentation
 

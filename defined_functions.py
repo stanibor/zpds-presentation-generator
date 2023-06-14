@@ -11,7 +11,7 @@ def key_words_list2str(key_words:list):
 
 
 def generate_title_slide(key_words:list):
-    prompt = f'Generate short title of presention nased on key words: {key_words_list2str(key_words)} without quotation marks'
+    prompt = f'Generate short title of presention based on key words: {key_words_list2str(key_words)} without quotation marks'
     title = openai.Completion.create(engine=TEXT_MODEL, prompt=prompt, max_tokens=100).choices[0].text
     return title.replace('\n', '')
 
@@ -23,7 +23,7 @@ def generate_introduction_speech(presenatation_title:str):
 
 
 def generate_slide_titles(key_words:list, number_of_slides:int):
-    prompt = f'Generate {number_of_slides} slide titles for whole presentation based on keywords: {key_words_list2str(key_words)} separated by comas without quotation marks and without numeration'
+    prompt = f'Generate exactly {number_of_slides} slide titles for whole presentation based on keywords: {key_words_list2str(key_words)} separated by comas without quotation marks and without numeration'
     titles = openai.Completion.create(engine=TEXT_MODEL, prompt=prompt, max_tokens=500).choices[0].text
     return titles.strip().split(', ')
 

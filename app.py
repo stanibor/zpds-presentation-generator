@@ -11,13 +11,14 @@ from defined_functions import key_words_list2str, generate_title_slide, generate
 
 def main():
     st.markdown("<h1 style='text-align: center; color: White;background-color:#e84343'>Presentation Creator</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: Black;'>Drop in The required Inputs and we will do  the rest.</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; color: Black;'>Drop in The required Inputs and we will do  the rest</h3>", unsafe_allow_html=True)
     st.sidebar.header("What is this Project about?")
-    st.sidebar.text("It a Web app that would help the user create presentations and present them.")
+    st.sidebar.write("It's a Web app that would help the user create presentations and present them.")
     st.sidebar.header("What tools where used to make this?")
-    st.sidebar.text("Chat GPT3 and more.")
+    st.sidebar.write("Chat GPT3 and more.")
 
-    n_of_slides = st.number_input("Input number of core slides", 1, 20)
+    st.markdown("<h5 style='text-align: left; color: Black;'>Firstly, create presentation without audio</h3>", unsafe_allow_html=True)
+    n_of_slides = st.number_input("Input number of core slides", 3, 20)
     words = st.text_input("Input context words, semicolon separated")
     list_of_words = words.split(";")
 
@@ -27,65 +28,68 @@ def main():
         st.session_state.dwn_tts_avail = 0
 
 
-    if st.button("Generate slides"):
-        with st.spinner('Wait for it...'):
-            st.session_state.dwn_avail = 1
-            data = get_presenation_data(list_of_words, n_of_slides)
-            with open('slide_notes.txt', 'w', encoding="utf8") as f:
-                f.write(data['introduction_speech'])
-                for slide_data in data['slides']:
-                    f.write(slide_data['speech'])
-                    f.write('\n')
-                f.write(data['summary'])
+    if st.button("Generate presentation with slide notes"):
+        if not words:
+            st.write("Provide context words!")
+        else:
+            with st.spinner('Wait for it...'):
+                data = get_presenation_data(list_of_words, n_of_slides)
+                with open('slide_notes.txt', 'w', encoding="utf8") as f:
+                    f.write(data['introduction_speech'])
+                    for slide_data in data['slides']:
+                        f.write(slide_data['speech'])
+                        f.write('\n')
+                    f.write(data['summary'])
 
-            pres = Presentation()
+                pres = Presentation()
 
-            #Slide Intro
+                #Slide Intro
 
-            slide = pres.slides.add_slide(pres.slide_layouts[2])
-            title_shape = slide.shapes.title
-            title_shape.text = data['title']
-            left = top = Inches(2)
-            width = height = Inches(3)
+                slide = pres.slides.add_slide(pres.slide_layouts[2])
+                title_shape = slide.shapes.title
+                title_shape.text = data['title']
+                left = top = Inches(2)
+                width = height = Inches(3)
 
-            notes_slide = slide.notes_slide  # Get slide notes object
-            notes_slide.notes_text_frame.text = data["introduction_speech"]
-
-            #Slides
-
-            for slide_data in data['slides']:
-                slide_layout = pres.slide_layouts[1]  # Use layout with title and content
-                slide = pres.slides.add_slide(slide_layout)
-                # Set the slide title
-                title = slide.shapes.title
-                title.text = slide_data['title']
-                # Add a text field
-                content = slide.placeholders[1]  # Use the second placeholder for content
-                content.text = slide_data['text']
-                # Add a picture
-                picture_path = slide_data['img'][1]  # Replace with the actual path to your picture
-                left = Inches(4)  # Adjust the position of the picture
-                top = Inches(4)
-                width = Inches(4)  # Adjust the size of the picture
-                height = Inches(3)
-                if len(slide_data['img'][1]):
-                    slide.shapes.add_picture(picture_path, left, top, width, height)
-
-                # Add speech into slide notes
                 notes_slide = slide.notes_slide  # Get slide notes object
-                notes_slide.notes_text_frame.text = slide_data['speech']  # Get speech text into notes
+                notes_slide.notes_text_frame.text = data["introduction_speech"]
 
-            slide = pres.slides.add_slide(pres.slide_layouts[2])
-            title_shape = slide.shapes.title
-            title_shape.text = 'Thank you'
-            left = top = Inches(2)
-            width = height = Inches(3)
+                #Slides
 
-            notes_slide = slide.notes_slide  # Get slide notes object
-            notes_slide.notes_text_frame.text = data['summary']  # Get speech text into notes
+                for slide_data in data['slides']:
+                    slide_layout = pres.slide_layouts[1]  # Use layout with title and content
+                    slide = pres.slides.add_slide(slide_layout)
+                    # Set the slide title
+                    title = slide.shapes.title
+                    title.text = slide_data['title']
+                    # Add a text field
+                    content = slide.placeholders[1]  # Use the second placeholder for content
+                    content.text = slide_data['text']
+                    # Add a picture
+                    picture_path = slide_data['img'][1]  # Replace with the actual path to your picture
+                    left = Inches(4)  # Adjust the position of the picture
+                    top = Inches(4)
+                    width = Inches(4)  # Adjust the size of the picture
+                    height = Inches(3)
+                    if len(slide_data['img'][1]):
+                        slide.shapes.add_picture(picture_path, left, top, width, height)
 
-            pres.save('presentation.pptx')
-        st.success('Done!')
+                    # Add speech into slide notes
+                    notes_slide = slide.notes_slide  # Get slide notes object
+                    notes_slide.notes_text_frame.text = slide_data['speech']  # Get speech text into notes
+
+                slide = pres.slides.add_slide(pres.slide_layouts[2])
+                title_shape = slide.shapes.title
+                title_shape.text = 'Thank you'
+                left = top = Inches(2)
+                width = height = Inches(3)
+
+                notes_slide = slide.notes_slide  # Get slide notes object
+                notes_slide.notes_text_frame.text = data['summary']  # Get speech text into notes
+
+                pres.save('presentation.pptx')
+                st.session_state.dwn_avail = 1
+            st.success('Done!')
     
     if st.session_state.dwn_avail == 1:
         with open('presentation.pptx', "rb") as file:  # , encoding="ISO-8859-1"
@@ -95,11 +99,21 @@ def main():
                     file_name='presentation.pptx',
                     disabled=(st.session_state.dwn_avail == 0)
                 )
+    else:
+        btn = st.download_button(
+                    label="Download presentation .pptx",
+                    data='placeholder',
+                    file_name='presentation.pptx',
+                    disabled=True
+                )
             # presentation = file
 
-    presentation_dl = st.file_uploader("Upload presentation .pptx", type=["pptx"])
-    presentation = Presentation("presentation.pptx") if Path('presentation.pptx').exists() else None
+    st.markdown("<h5 style='text-align: left; color: Black;'>Secondly, generate presentation with spoken audio</h3>", unsafe_allow_html=True)
 
+    presentation_dl = st.file_uploader("Upload presentation .pptx with slide notes", type=["pptx"])
+    # presentation = Presentation("presentation.pptx") if Path('presentation.pptx').exists() else None
+
+    presentation = None
     if presentation_dl is not None:
         presentation = Presentation(presentation_dl)
 
@@ -135,8 +149,13 @@ def main():
         with open("spoken_presentation.pptx", "rb") as file:
             st.download_button("Download spoken presentation .pptx",
                                data=file,
-                               file_name='presentation.pptx',
+                               file_name='spoken_presentation.pptx',
                                disabled=(st.session_state.dwn_tts_avail == 0))
+    else:
+        st.download_button("Download spoken presentation .pptx",
+                               data='placeholder',
+                               file_name='spoken_presentation.pptx',
+                               disabled=True)
 
 
 if __name__ == '__main__':
