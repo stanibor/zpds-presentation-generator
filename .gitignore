@@ -1,1 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
+*.pptx
+pres_teplate*
+*.wav
+slide_notes.txt
+*.jpg
