@@ -63,6 +63,7 @@ headers = {
 }
 
 def get_image_for_slide(slide_title:str, slide_number:int):
+    print(slide_title)
     params = {
         "q": slide_title,
         "sourceid": "chrome",
@@ -86,60 +87,9 @@ def get_image_for_slide(slide_title:str, slide_number:int):
             final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
             return True, f'slide_image_{slide_number}.jpg'
         except:
-            return False, 'African_Bush_Elephant.jpg'
-    else:
-        return False, 'African_Bush_Elephant.jpg'
-    
-def get_image_for_slide_selenium_firefox(slide_title:str, slide_number:int):
-    firefox_binary = FirefoxBinary()
-    browser = webdriver.Firefox(firefox_binary=firefox_binary)
-
-    browser.get(f'https://www.google.com/search?q={slide_title}&source=lnms&tbm=isch')
-    browser.find_element(By.XPATH,"//.[@aria-label='Zaakceptuj wszystko']").click()
-
-    for el in browser.find_elements(By.CSS_SELECTOR, "img"):
-        url = el.get_attribute("src")
-        if "data:image" in url:
-            print(url)
-            break
-    
-    browser.close()
-    if url:
-        try:
-            final_image = Image.open(BytesIO(base64.b64decode(url[22:])))
-            final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
-            return True, f'slide_image_{slide_number}.jpg'
-        except:
             return False, ''
     else:
         return False, ''
-    
-def get_image_for_slide_selenium_chrome(slide_title:str, slide_number:int):
-    browser = webdriver.Chrome()
-    browser.get(f'https://www.google.com/search?q={slide_title}&source=lnms&tbm=isch')
-    elem = browser.find_elements(By.XPATH,"//button[@aria-label='Zaakceptuj wszystko']")
-    if len(elem):
-        elem[0].click()
-
-        url = ''
-        time.sleep(1)
-        for el in browser.find_elements(By.XPATH, "//img"):
-            url = el.get_attribute("src")
-            if "data:image" in url:
-                break
-        
-        browser.close()
-        print(url)
-        if url:
-            try:
-                final_image = Image.open(BytesIO(base64.b64decode(url[22:])))
-                final_image.save(f'slide_image_{slide_number}.jpg', 'JPEG')
-                return True, f'slide_image_{slide_number}.jpg'
-            except:
-                return False, ''
-    else:
-        return False, ''
-    
 
 def get_presenation_data(key_words:list, n_of_slides):
     example_generated_data = {}
