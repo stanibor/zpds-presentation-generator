@@ -7,7 +7,7 @@ from pptx.dml.color import RGBColor
 
 from audio_functions import get_pretrained_tts_models, synthesize_presentation_notes, extract_presentation_notes, \
     save_waveforms, annotate_presentation_with_spoken_notes
-from defined_functions import get_presenation_data
+from defined_functions import get_presentation_data
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
         else:
             with st.spinner('Wait for it...'):
                 st.session_state.dwn_avail = 1
-                data = get_presenation_data(list_of_words, n_of_slides)
+                data = get_presentation_data(list_of_words, n_of_slides)
                 with open('slide_notes.txt', 'w', encoding="utf8") as f:
                     f.write(data['introduction_speech'])
                     for slide_data in data['slides']:
